@@ -142,24 +142,20 @@ class Fluent::PgdistOutput < Fluent::BufferedOutput
       delete_existing_records(handler, table, records)
     end
 
-    $log.info "insert #{records.size} records into #{table}"
-    sql = "INSERT INTO #{table}(#{@insert_columns}) VALUES(#{@insert_values})"
-    $log.info "execute sql #{sql.inspect}"
-    statement = "write_#{table}"
-    handler.prepare(statement, sql)
-    records.each do |record|
-      record = filter_for_insert(record)
-      $log.info "insert #{record.inspect}"
-      begin
+    $log.info "begining transaction..."
+    handler.transaction do |conn|
+      $log.info "insert #{records.size} records into #{table}"
+      sql = "INSERT INTO #{table}(#{@insert_columns}) VALUES(#{@insert_values})"
+      $log.info "execute sql #{sql.inspect}"
+      statement = "write_#{table}"
+      handler.prepare(statement, sql)
+      records.each do |record|
+        record = filter_for_insert(record)
+        $log.info "insert #{record.inspect}"
         handler.exec_prepared(statement, record)
-      rescue Exception=>e
-        if @raise_exception
-          raise e
-        else
-          $log.info e.message
-        end
       end
     end
+    $log.info "committed..."
   end
 
   def read_last_sequence(filepath)
