@@ -17,8 +17,8 @@ Define match directive for pgdist in fluentd config file(ex. fluent.conf):
       username postgres
       password postgres
       database pgdist
-      table_moniker {|record|t=record["created_at"];"pgdist_test"+t[0..3]+t[5..6]+t[8..9]}
-      insert_filter {|record|[record["id"],record["created_at"],record.to_json]}
+      table_moniker {|tag,time,data|t=time;"pgdist_test"+t[0..3]+t[5..6]+t[8..9]}
+      insert_filter {|record|[record["id"],record["_created_at"],record.to_json]}
       columns id,created_at,value
       values $1,$2,$3
       raise_exception false
