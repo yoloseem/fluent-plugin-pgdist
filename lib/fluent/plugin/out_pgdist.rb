@@ -196,15 +196,16 @@ class Fluent::PgdistOutput < Fluent::BufferedOutput
     super
   end
 
-  def table_name(record)
-    @table_moniker_lambda.call(record)
+  def table_name(tag, time, data)
+    time = "#{Time.at(time).localtime}"
+    @table_moniker_lambda.call(tag, time, data)
   end
 
   def write(chunk)
     handler = self.client
     records_hash = {}
     chunk.msgpack_each { |tag, time, data|
-      table = @table_moniker_lambda.call(data)
+      table = table_name(tag, time, data)
       if ! table.nil?
         records_hash[table] ||= []
         records_hash[table].push data
