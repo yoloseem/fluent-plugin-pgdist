@@ -206,9 +206,11 @@ class Fluent::PgdistOutput < Fluent::BufferedOutput
     records_hash = {}
     chunk.msgpack_each { |tag, time, data|
       table = table_name(tag, time, data)
+      record = data
+      data["_created_at"] = Time.at(time).localtime
       if ! table.nil?
         records_hash[table] ||= []
-        records_hash[table].push data
+        records_hash[table].push record
       end
     }
     records_hash.each_pair do |table, records|
